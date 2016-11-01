@@ -8,6 +8,20 @@ var session = require('express-session');
 var async = require('async');
 
 var db = require('./db');
+var swaggerJSDoc = require('swagger-jsdoc');
+
+var options = {
+  swaggerDefinition: {
+    info: {
+      title: 'Hello World', // Title (required)
+      version: '1.0.0', // Version (required)
+    },
+  },
+  apis: ['./server'], // Path to the API docs
+};
+
+// Initialize swagger-jsdoc -> returns validated swagger spec in json format
+var swaggerSpec = swaggerJSDoc(options);
 
 var Schema = mongoose.Schema,
     Character = require('./app/models/character.js');
@@ -28,6 +42,28 @@ router.get('/base', function(req, res) {
         res.send(text);
 });
 
+app.get('/api-docs.json', function(req, res) {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
+/**
+ * @swagger
+ * /characters:
+ *   get:
+ *     description: Get a list of characters
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *     responses:
+ *       200:
+ *         description: characters
+ *         schema:
+*           type: array
+*           items:
+*             $ref: '#/definitions/Character'
+*/
+
 // ------------------ view multiple
 router.get('/characters', function(req, res) {
     console.log('get characters', req.params);
@@ -39,12 +75,36 @@ router.get('/characters', function(req, res) {
             return res.json(err);
         } else {
             console.log('success');
-            res.send(result);
+            res.json(result);
         }
     });
     console.log('after-get');
 });
 
+/**
+ * @swagger
+ * /users:
+ *   post:
+ *     description: Create character
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: character
+ *         eyecolor: string
+ *         haircolor: string
+ *         height: Number
+ *         persona: array
+ *         lands: array
+ *         location: string
+ *         age: Number
+ *         schema:
+ *           $ref: '#/definitions/NewCharacter'
+ *     responses:
+ *       200:
+ *         description: characters
+ *         schema:
+ *           $ref: '#/definitions/Characters'
+ */
 //--------------------- create one
  router.post('/character', function(req, res) {
     console.log('create one result');
